@@ -35,6 +35,9 @@ class Filler(models.Model):
         verbose_name = u'Филлер'
         verbose_name_plural = u'Филлеры'
 
+    def __unicode__(self):
+        return u'%s: %s' % (self.image, self.description)
+
 
 class ItemSet(models.Model):
     class Meta:
@@ -54,6 +57,20 @@ class Item(models.Model):
         verbose_name = u'Элемент листа'
         verbose_name_plural = u'Элементы листа'
 
+    def __unicode__(self):
+        return u'%s: %s' % (self.image, self.description)
 
-#class SurveryResult(models.Model):
-    #sample = models.ForeignKey(Sample)
+
+class Participant(models.Model):
+    item_set = models.ForeignKey(ItemSet)
+
+    def __unicode__(self):
+        return u'%d: %s' % (self.id, self.item_set)
+
+
+class ResultItem(models.Model):
+    participant = models.ForeignKey(Participant)
+    filler = models.ForeignKey(Filler, null=True)
+    item = models.ForeignKey(Item, null=True)
+    answer = models.BooleanField()
+    n = models.IntegerField()

@@ -6,7 +6,7 @@ import json
 from django.shortcuts import render
 from django.views.generic import TemplateView, View
 
-from survey.models import Item, ItemSet, Filler
+from survey.models import Item, ItemSet, Filler, Participant, ResultItem
 
 
 class IndexView(TemplateView):
@@ -43,7 +43,19 @@ class ItemView(View):
         if answer not in ['yes', 'no']:
             error = u'Вы должны ответить Да или Нет'
         else:
-            # TODO - save
+            if state.get('participant'):
+                participant = Participant.objects.get(pk=state['participant'])
+            else:
+                participant = Participant.objects.create(
+                        item_set=ItemSet.objects.get(pk=state['item_set']))
+                state['participant'] = participant.id
+            item = state['items'][state['n']]
+            ResultItem.objects.create(
+                    participant=participant,
+                    filler_id=item.get('filler'),
+                    item_id=item.get('item'),
+                    answer=answer == 'yes',
+                    n=state['n'])
             state['n'] += 1
             if state['n'] == len(state['items']):
                 finished = True
@@ -60,7 +72,7 @@ def serialize_item(item):
         'id': item.id,
         'description': item.description.text,
         'image': item.image.name,
-        'type': 'filler' if isinstance(item, Filler) else 'item',
-        'answer': item.answer if isinstance(item, Filler) else None,
+        'filler': item.id if isinstance(item, Filler) else None,
+        'item': item.id if isinstance(item, Item) else None,
         }
 
