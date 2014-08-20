@@ -78,6 +78,8 @@ USE_TZ = True
 import dj_database_url
 heroku_db = dj_database_url.config()
 if heroku_db:
+    DEBUG = False
+    TEMPLATE_DEBUG = False
     DATABASES['default'] = heroku_db
 
 
