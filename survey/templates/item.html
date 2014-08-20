@@ -2,11 +2,23 @@
 
 {% block content %}
 
-<img class="img-polaroid" src="{{ STATIC_URL }}img/{{ item.image.name }}.png"/>
 
-<h4>{{ item.description.text }}.</h4>
+{% if finished %}
+
+<h4>
+Спасибо за участие в эксперименте!
+</h4>
+
+{% else %}
+
+
+<img class="img-polaroid" src="{{ STATIC_URL }}img/{{ item.image }}.png"/>
+
+<h4>{{ item.description }}.</h4>
+
 
 <form method="POST" action="">
+  {% csrf_token %}
 
   <label class="radio">
     <input type="radio" name="answer" id="answer1" value="yes">
@@ -18,6 +30,17 @@
   </label>
 
   <button type="submit" class="btn btn-primary">Дальше</button>
+
+  <input type="hidden" name="state_json" value="{{ state_json }}"/>
+
 </form>
+
+{% if error %}
+<div class="alert alert-error">{{ error }}</div>
+{% endif %}
+
+
+{% endif %}
+
 
 {% endblock content %}
