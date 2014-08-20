@@ -74,3 +74,4 @@ class ResultItem(models.Model):
     item = models.ForeignKey(Item, null=True)
     answer = models.BooleanField()
     n = models.IntegerField()
+    dt = models.DateTimeField(auto_now_add=True, null=True)

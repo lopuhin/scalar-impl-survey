@@ -25,6 +25,6 @@ admin.site.register(survey.models.ItemSet)
 
 
 class ResultItemAdmin(admin.ModelAdmin):
-    list_display = ['participant', 'item', 'filler', 'answer', 'n']
+    list_display = ['participant', 'item', 'filler', 'answer', 'n', 'dt']
 
 admin.site.register(survey.models.ResultItem, ResultItemAdmin)
