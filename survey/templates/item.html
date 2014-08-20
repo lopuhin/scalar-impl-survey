@@ -1,0 +1,23 @@
+{% extends "base.html" %}
+
+{% block content %}
+
+<img class="img-polaroid" src="{{ STATIC_URL }}img/{{ item.image.name }}.png"/>
+
+<h4>{{ item.description.text }}.</h4>
+
+<form method="POST" action="">
+
+  <label class="radio">
+    <input type="radio" name="answer" id="answer1" value="yes">
+    Да
+  </label>
+  <label class="radio">
+    <input type="radio" name="answer" id="answer2" value="no">
+    Нет
+  </label>
+
+  <button type="submit" class="btn btn-primary">Дальше</button>
+</form>
+
+{% endblock content %}
