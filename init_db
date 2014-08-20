@@ -3,4 +3,4 @@ set -e
 
 dropdb si_survey_db
 createdb si_survey_db
-python manage.py syncdb
+python manage.py syncdb --noinput
