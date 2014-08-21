@@ -4,6 +4,7 @@ import random
 import json
 import csv
 from StringIO import StringIO
+from collections import defaultdict
 
 from django.http import HttpResponse
 from django.shortcuts import render
@@ -138,24 +139,30 @@ class ResultView(View):
 
     def get(self, request):
         filler_correctness = {}
-        participants_filler_rating = {}
+        participants_filler_rating = defaultdict(int)
         item_answers = {}
-        for ri in ResultItem.objects\
-                .select_related('participant', 'filler', 'item'):
+        for ri in ResultItem.objects.select_related('filler'):
             if ri.filler:
                 filler_is_correct = ri.answer == ri.filler.answer
-                account(participants_filler_rating,
-                        ri.participant, filler_is_correct)
+                participants_filler_rating[ri.participant_id] += \
+                        not filler_is_correct
                 account(filler_correctness, ri.filler, filler_is_correct)
-            elif ri.item:
+        for ri in ResultItem.objects.select_related('item'):
+            if ri.item and participants_filler_rating\
+                    .get(ri.participant_id, 100) <= 1:
                 account(item_answers, ri.item, ri.answer)
         _sorted = lambda d: [(
                 k, y, c, '%.2f' % (1.0 * y / c,))
             for k, (y, c) in sorted(
                 d.iteritems(), key=lambda (k, _): unicode(k))]
+        filler_hist = defaultdict(int)
+        for n_wrong in participants_filler_rating.itervalues():
+            filler_hist[n_wrong] += 1
         return render(request, self.template_name, {
             'filler_correctness': _sorted(filler_correctness),
             'item_answers': _sorted(item_answers),
+            'filler_hist': sorted(filler_hist.iteritems(),
+                key=lambda (n, _): n),
             })
 
 

@@ -47,4 +47,22 @@
 </table>
 
 
+<table>
+  <thead>
+    <tr>
+      <th>N errors</th>
+      <th>N participants</th>
+    </tr>
+  </thead>
+  <tbody>
+    {% for n, cnt in filler_hist %}
+    <tr>
+      <td>{{ n }}</td>
+      <td>{{ cnt }}</td>
+    </tr>
+    {% endfor %}
+  </tbody>
+</table>
+
+
 {% endblock %}
