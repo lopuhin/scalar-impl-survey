@@ -70,4 +70,25 @@
 </table>
 
 
+<h4>Per-participant preferances</h4>
+
+<table class="result">
+  <thead>
+    <tr>
+      <th>Answers</th>
+      <th class="value">Participants</th>
+      <th class="value">%</th>
+    </tr>
+  </thead>
+  <tbody>
+    {% for answers, n, p in participants_per_item_tuple %}
+    <tr>
+      <td>{{ answers }}</td>
+      <td class="value">{{ n }}</td>
+      <td class="value">{{ p }}</td>
+    </tr>
+    {% endfor %}
+  </tbody>
+</table>
+
 {% endblock %}

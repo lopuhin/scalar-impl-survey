@@ -141,6 +141,7 @@ class ResultView(View):
         filler_correctness = {}
         participants_filler_rating = defaultdict(int)
         item_answers = {}
+        per_participant_answers = defaultdict(list)
         for ri in ResultItem.objects.select_related('filler'):
             if ri.filler:
                 filler_is_correct = ri.answer == ri.filler.answer
@@ -151,18 +152,33 @@ class ResultView(View):
             if ri.item and participants_filler_rating\
                     .get(ri.participant_id, 100) <= 1:
                 account(item_answers, ri.item, ri.answer)
+                per_participant_answers[ri.participant_id].append(
+                        (ri.item.image.name, ri.answer))
+        participants_per_item_tuple = defaultdict(int)
+        for answers in per_participant_answers.itervalues():
+            if len(answers) == 4:
+                answers.sort()
+                participants_per_item_tuple[tuple(answers)] += 1
         _sorted = lambda d: [(
-                k, y, c, '%.2f' % (1.0 * y / c,))
+                k, y, c, '%.3f' % (1.0 * y / c,))
             for k, (y, c) in sorted(
                 d.iteritems(), key=lambda (k, _): unicode(k))]
         filler_hist = defaultdict(int)
         for n_wrong in participants_filler_rating.itervalues():
             filler_hist[n_wrong] += 1
+        n_per_participant_items = sum(participants_per_item_tuple.itervalues())
         return render(request, self.template_name, {
             'filler_correctness': _sorted(filler_correctness),
             'item_answers': _sorted(item_answers),
             'filler_hist': sorted(filler_hist.iteritems(),
                 key=lambda (n, _): n),
+            'participants_per_item_tuple': [(
+                u', '.join(u'%s: %d' % (image, a) for image, a in answers),
+                n,
+                '%.3f' % (1.0 * n / n_per_participant_items,)
+                ) for answers, n in sorted(
+                    participants_per_item_tuple.iteritems(),
+                    key=lambda (k, _): k)],
             })
 
 
