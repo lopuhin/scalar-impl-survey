@@ -7,7 +7,8 @@
 <table class="result">
   <thead>
     <tr>
-      <th>Item</th>
+      <th>Image</th>
+      <th>Description</th>
       <th class="value">Yes</th>
       <th class="value">Total</th>
       <th class="value">% yes</th>
@@ -16,7 +17,8 @@
   <tbody>
     {% for item, y, c, p in item_answers %}
     <tr>
-      <td>{{ item }}</td>
+      <td>{{ item.image }}</td>
+      <td>{{ item.description }}</td>
       <td class="value">{{ y }}</td>
       <td class="value">{{ c }}</td>
       <td class="value">{{ p }}</td>
@@ -31,7 +33,8 @@
 <table class="result">
   <thead>
     <tr>
-      <th>Filler</th>
+      <th>Image</th>
+      <th>Description</th>
       <th class="value">Correct</th>
       <th class="value">Total</th>
       <th class="value">% correct</th>
@@ -40,7 +43,8 @@
   <tbody>
     {% for item, y, c, p in filler_correctness %}
     <tr>
-      <td>{{ item }}</td>
+      <td>{{ item.image }}</td>
+      <td>{{ item.description }}</td>
       <td class="value">{{ y }}</td>
       <td class="value">{{ c }}</td>
       <td class="value">{{ p }}</td>
