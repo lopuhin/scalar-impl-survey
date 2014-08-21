@@ -83,77 +83,43 @@ class ItemView(View):
 class RawResultView(View):
     def get(self, request):
         rows = [[
-            'participant',
-            'n',
-            'item_set',
-            'filler_id',
-            'filler_image',
-            'filler_description',
-            'filler_answer',
-            'filler_is_correct',
             'item_id',
-            'item_image',
-            'item_description',
+            'image',
+            'description',
             'answer',
-            'dt',
+            'n',
             ]]
-        for ri in ResultItem.objects\
-                .order_by('participant', 'n')\
-                .select_related('participant', 'filler', 'item'):
+        participants_filler_rating, _ = get_filler_rating()
+        prefix = u'Ровно одна буква соединена с '
+        for ri in valid_items(participants_filler_rating):
             row = [
-                ri.participant.id,
-                ri.n,
-                ri.participant.item_set_id,
-                ]
-            if ri.filler:
-                row.extend([
-                    ri.filler.id,
-                    ri.filler.image.name,
-                    ri.filler.description.text,
-                    ri.filler.answer,
-                    int(ri.filler.answer == ri.answer),
-                    ])
-            else:
-                row.extend([''] * 5)
-            if ri.item:
-                row.extend([
-                    ri.item.id,
-                    ri.item.image.name,
-                    ri.item.description,
-                    ])
-            else:
-                row.extend([''] * 3)
-            row.extend([
+                ri.item.id,
+                ri.item.image.name,
+                ri.item.description.text[len(prefix):].split(' ', 1)[0],
                 int(ri.answer == 0),
-                ri.dt,
-                ])
+                ri.n,
+            ]
             rows.append([unicode(x).encode('utf-8') for x in row])
         f = StringIO()
         writer = csv.writer(f)
         writer.writerows(rows)
-        return HttpResponse(f.getvalue(), mimetype='text/csv')
+        response = HttpResponse(f.getvalue(), mimetype='text/csv')
+        response['Content-Disposition'] = \
+                u'attachment; filename="si_raw.csv"'
+        return response
 
 
 class ResultView(View):
     template_name = 'result.html'
 
     def get(self, request):
-        filler_correctness = {}
-        participants_filler_rating = defaultdict(int)
+        participants_filler_rating, filler_correctness = get_filler_rating()
         item_answers = {}
         per_participant_answers = defaultdict(list)
-        for ri in ResultItem.objects.select_related('filler'):
-            if ri.filler:
-                filler_is_correct = ri.answer == ri.filler.answer
-                participants_filler_rating[ri.participant_id] += \
-                        not filler_is_correct
-                account(filler_correctness, ri.filler, filler_is_correct)
-        for ri in ResultItem.objects.select_related('item'):
-            if ri.item and participants_filler_rating\
-                    .get(ri.participant_id, 100) <= 1:
-                account(item_answers, ri.item, ri.answer)
-                per_participant_answers[ri.participant_id].append(
-                        (ri.item.image.name, ri.answer))
+        for ri in valid_items(participants_filler_rating):
+            account(item_answers, ri.item, ri.answer)
+            per_participant_answers[ri.participant_id].append(
+                    (ri.item.image.name, ri.answer))
         participants_per_item_tuple = defaultdict(int)
         for answers in per_participant_answers.itervalues():
             if len(answers) == 4:
@@ -180,6 +146,30 @@ class ResultView(View):
                     participants_per_item_tuple.iteritems(),
                     key=lambda (k, _): k)],
             })
+
+
+def get_filler_rating():
+    filler_correctness = {}
+    participants_filler_rating = defaultdict(int)
+    for ri in ResultItem.objects\
+            .filter(filler__isnull=False)\
+            .select_related('filler'):
+        filler_is_correct = ri.answer == ri.filler.answer
+        participants_filler_rating[ri.participant_id] += \
+            not filler_is_correct
+        account(filler_correctness, ri.filler, filler_is_correct)
+    return participants_filler_rating, filler_correctness
+
+
+def valid_items(participants_filler_rating):
+    for ri in ResultItem.objects\
+            .filter(item__isnull=False)\
+            .select_related('item'):
+        try:
+            if participants_filler_rating[ri.participant_id] <= 1:
+                yield ri
+        except KeyError:
+            pass
 
 
 def account(d, key, answer):
