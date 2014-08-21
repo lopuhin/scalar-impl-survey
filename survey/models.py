@@ -40,6 +40,8 @@ class Filler(models.Model):
 
 
 class ItemSet(models.Model):
+    is_active = models.BooleanField(default=True)
+
     class Meta:
         verbose_name = u'Лист'
         verbose_name_plural = u'Листы'

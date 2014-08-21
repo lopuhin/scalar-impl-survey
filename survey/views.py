@@ -3,7 +3,6 @@
 import random
 import json
 import csv
-from collections import defaultdict
 from StringIO import StringIO
 
 from django.http import HttpResponse
@@ -21,7 +20,7 @@ class ItemView(View):
     template_name = 'item.html'
 
     def get(self, request):
-        item_set = random.choice(list(ItemSet.objects.all()))
+        item_set = random.choice(list(ItemSet.objects.filter(is_active=True)))
         items = list(Item.objects\
                 .filter(item_set=item_set)\
                 .select_related('description', 'image'))
