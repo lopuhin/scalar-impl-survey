@@ -2,7 +2,11 @@
 
 import random
 import json
+import csv
+from collections import defaultdict
+from StringIO import StringIO
 
+from django.http import HttpResponse
 from django.shortcuts import render
 from django.views.generic import TemplateView, View
 
@@ -27,11 +31,11 @@ class ItemView(View):
         random.shuffle(all_items)
         first_item = all_items[0]
         return render(request, self.template_name, {
-            'item': serialize_item(first_item),
+            'item': self._serialize_item(first_item),
             'state_json': json.dumps({
                 'item_set': item_set.id,
                 'n': 0,
-                'items': map(serialize_item, all_items)
+                'items': map(self._serialize_item, all_items)
                 }),
             })
 
@@ -66,13 +70,101 @@ class ItemView(View):
             'state_json': json.dumps(state),
             })
 
+    def _serialize_item(self, item):
+        return {
+            'id': item.id,
+            'description': item.description.text,
+            'image': item.image.name,
+            'filler': item.id if isinstance(item, Filler) else None,
+            'item': item.id if isinstance(item, Item) else None,
+            }
 
-def serialize_item(item):
-    return {
-        'id': item.id,
-        'description': item.description.text,
-        'image': item.image.name,
-        'filler': item.id if isinstance(item, Filler) else None,
-        'item': item.id if isinstance(item, Item) else None,
-        }
 
+class RawResultView(View):
+    def get(self, request):
+        rows = [[
+            'participant',
+            'n',
+            'item_set',
+            'filler_id',
+            'filler_image',
+            'filler_description',
+            'filler_answer',
+            'filler_is_correct',
+            'item_id',
+            'item_image',
+            'item_description',
+            'answer',
+            'dt',
+            ]]
+        for ri in ResultItem.objects\
+                .order_by('participant', 'n')\
+                .select_related('participant', 'filler', 'item'):
+            row = [
+                ri.participant.id,
+                ri.n,
+                ri.participant.item_set_id,
+                ]
+            if ri.filler:
+                row.extend([
+                    ri.filler.id,
+                    ri.filler.image.name,
+                    ri.filler.description.text,
+                    ri.filler.answer,
+                    int(ri.filler.answer == ri.answer),
+                    ])
+            else:
+                row.extend([''] * 5)
+            if ri.item:
+                row.extend([
+                    ri.item.id,
+                    ri.item.image.name,
+                    ri.item.description,
+                    ])
+            else:
+                row.extend([''] * 3)
+            row.extend([
+                int(ri.answer == 0),
+                ri.dt,
+                ])
+            rows.append([unicode(x).encode('utf-8') for x in row])
+        f = StringIO()
+        writer = csv.writer(f)
+        writer.writerows(rows)
+        return HttpResponse(f.getvalue(), mimetype='text/csv')
+
+
+class ResultView(View):
+    template_name = 'result.html'
+
+    def get(self, request):
+        filler_correctness = {}
+        participants_filler_rating = {}
+        item_answers = {}
+        for ri in ResultItem.objects\
+                .select_related('participant', 'filler', 'item'):
+            if ri.filler:
+                filler_is_correct = ri.answer == ri.filler.answer
+                account(participants_filler_rating,
+                        ri.participant, filler_is_correct)
+                account(filler_correctness, ri.filler, filler_is_correct)
+            elif ri.item:
+                account(item_answers, ri.item, ri.answer)
+        _sorted = lambda d: [(
+                k, y, c, '%.2f' % (1.0 * y / c,))
+            for k, (y, c) in sorted(
+                d.iteritems(), key=lambda (k, _): unicode(k))]
+        return render(request, self.template_name, {
+            'filler_correctness': _sorted(filler_correctness),
+            'item_answers': _sorted(item_answers),
+            })
+
+
+def account(d, key, answer):
+    try:
+        yes, count = d[key]
+    except KeyError:
+        yes, count = d[key] = (0, 0)
+    yes += answer
+    count += 1
+    d[key] = (yes, count)

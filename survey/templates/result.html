@@ -1,0 +1,50 @@
+{% extends "base.html" %}
+
+{% block content %}
+
+
+<table>
+  <thead>
+    <tr>
+      <th>Item</th>
+      <th>Yes</th>
+      <th>Total</th>
+      <th>%</th>
+    </tr>
+  </thead>
+  <tbody>
+    {% for item, y, c, p in item_answers %}
+    <tr>
+      <td>{{ item }}</td>
+      <td>{{ y }}</td>
+      <td>{{ c }}</td>
+      <td>{{ p }}</td>
+    </tr>
+    {% endfor %}
+  </tbody>
+</table>
+
+
+<table>
+  <thead>
+    <tr>
+      <th>Filler</th>
+      <th>Correct</th>
+      <th>Total</th>
+      <th>%</th>
+    </tr>
+  </thead>
+  <tbody>
+    {% for item, y, c, p in filler_correctness %}
+    <tr>
+      <td>{{ item }}</td>
+      <td>{{ y }}</td>
+      <td>{{ c }}</td>
+      <td>{{ p }}</td>
+    </tr>
+    {% endfor %}
+  </tbody>
+</table>
+
+
+{% endblock %}
