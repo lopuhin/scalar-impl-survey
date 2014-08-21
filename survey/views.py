@@ -96,7 +96,7 @@ class RawResultView(View):
                 ri.item.id,
                 ri.item.image.name,
                 ri.item.description.text[len(prefix):].split(' ', 1)[0],
-                int(ri.answer == 0),
+                int(ri.answer == 1),
                 ri.n,
             ]
             rows.append([unicode(x).encode('utf-8') for x in row])
