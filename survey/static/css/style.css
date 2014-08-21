@@ -4,5 +4,6 @@
 }
 th.value,td.value {
   min-width: 60px;
+  padding-left: 10px;
   text-align: left;
 }
