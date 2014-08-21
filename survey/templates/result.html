@@ -2,63 +2,68 @@
 
 {% block content %}
 
+<h4>Item answers</h4>
 
-<table>
+<table class="result">
   <thead>
     <tr>
       <th>Item</th>
-      <th>Yes</th>
-      <th>Total</th>
-      <th>%</th>
+      <th class="value">Yes</th>
+      <th class="value">Total</th>
+      <th class="value">% yes</th>
     </tr>
   </thead>
   <tbody>
     {% for item, y, c, p in item_answers %}
     <tr>
       <td>{{ item }}</td>
-      <td>{{ y }}</td>
-      <td>{{ c }}</td>
-      <td>{{ p }}</td>
+      <td class="value">{{ y }}</td>
+      <td class="value">{{ c }}</td>
+      <td class="value">{{ p }}</td>
     </tr>
     {% endfor %}
   </tbody>
 </table>
 
 
-<table>
+<h4>Filler contentness</h4>
+
+<table class="result">
   <thead>
     <tr>
       <th>Filler</th>
-      <th>Correct</th>
-      <th>Total</th>
-      <th>%</th>
+      <th class="value">Correct</th>
+      <th class="value">Total</th>
+      <th class="value">% correct</th>
     </tr>
   </thead>
   <tbody>
     {% for item, y, c, p in filler_correctness %}
     <tr>
       <td>{{ item }}</td>
-      <td>{{ y }}</td>
-      <td>{{ c }}</td>
-      <td>{{ p }}</td>
+      <td class="value">{{ y }}</td>
+      <td class="value">{{ c }}</td>
+      <td class="value">{{ p }}</td>
     </tr>
     {% endfor %}
   </tbody>
 </table>
 
 
-<table>
+<h4>Filler error rate</h4>
+
+<table class="result">
   <thead>
     <tr>
-      <th>N errors</th>
-      <th>N participants</th>
+      <th class="value">errors</th>
+      <th class="value">participants</th>
     </tr>
   </thead>
   <tbody>
     {% for n, cnt in filler_hist %}
     <tr>
-      <td>{{ n }}</td>
-      <td>{{ cnt }}</td>
+      <td class="value">{{ n }}</td>
+      <td class="value">{{ cnt }}</td>
     </tr>
     {% endfor %}
   </tbody>
