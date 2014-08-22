@@ -27,7 +27,7 @@ dPersent = as.data.frame(tPersent)
 colnames(dPersent) = c('Meaning', 'Description', 'Answer')
 dPersent$Meaning = factor(dPersent$Meaning,
         levels=c('false', 'local', 'literal', 'all'))
-dPersent$sd = apply(bs$t, 2, sd)
+dPersent$sd = apply(bs$t, 2, sd) # FIXME - maybe * 1.96?
 
 print(ggplot(
     dPersent,
