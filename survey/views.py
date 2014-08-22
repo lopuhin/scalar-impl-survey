@@ -150,23 +150,26 @@ class ResultView(View):
 
 def get_filler_rating():
     filler_correctness = {}
-    participants_filler_rating = defaultdict(int)
+    participants_filler_rating = {}
     for ri in ResultItem.objects\
             .filter(filler__isnull=False)\
             .select_related('filler'):
         filler_is_correct = ri.answer == ri.filler.answer
-        participants_filler_rating[ri.participant_id] += \
-            not filler_is_correct
+        account(participants_filler_rating, ri.participant_id,
+            not filler_is_correct)
         account(filler_correctness, ri.filler, filler_is_correct)
     return participants_filler_rating, filler_correctness
 
 
 def valid_items(participants_filler_rating):
+    n_fillers = Filler.objects.count()
     for ri in ResultItem.objects\
             .filter(item__isnull=False)\
             .select_related('item'):
         try:
-            if participants_filler_rating[ri.participant_id] <= 1:
+            n_wrong, n_total = \
+                    participants_filler_rating[ri.participant_id]
+            if n_wrong <= 1 and n_total == n_fillers:
                 yield ri
         except KeyError:
             pass
