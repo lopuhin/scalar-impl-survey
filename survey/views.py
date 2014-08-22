@@ -7,7 +7,7 @@ from StringIO import StringIO
 from collections import defaultdict
 
 from django.http import HttpResponse
-from django.shortcuts import render
+from django.shortcuts import render, redirect
 from django.views.generic import TemplateView, View
 
 from survey.models import Item, ItemSet, Filler, Participant, ResultItem
@@ -17,11 +17,18 @@ class IndexView(TemplateView):
     template_name = 'index.html'
 
 
+class SurveyFinished(TemplateView):
+    template_name = 'survey_finished.html'
+
+
 class ItemView(View):
     template_name = 'item.html'
 
     def get(self, request):
-        item_set = random.choice(list(ItemSet.objects.filter(is_active=True)))
+        item_set_list = list(ItemSet.objects.filter(is_active=True))
+        if not item_set_list:
+            return redirect('survey_finished')
+        item_set = random.choice(item_set_list)
         items = list(Item.objects\
                 .filter(item_set=item_set)\
                 .select_related('description', 'image'))
