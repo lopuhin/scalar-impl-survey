@@ -10,7 +10,7 @@ getTruePersent = function (d) {
     tTrue = table(dTrue$image, dTrue$description)
     tAll = table(d$image, d$description)
     ## persent of true answers
-    return(tTrue / tAll)
+    return(100.0 * tTrue / tAll)
 }
 
 getTruePersentBootstrap = function (data, indices) {
@@ -24,22 +24,27 @@ bs = boot(full_data, getTruePersentBootstrap, R=100)
 
 tPersent = getTruePersent(full_data)
 dPersent = as.data.frame(tPersent)
-colnames(dPersent) = c('image', 'description', 'answer')
-
+colnames(dPersent) = c('Meaning', 'Description', 'Answer')
+dPersent$Meaning = factor(dPersent$Meaning,
+        levels=c('false', 'local', 'literal', 'all'))
 dPersent$sd = apply(bs$t, 2, sd)
 
 print(ggplot(
     dPersent,
-    aes(x=description, fill=image)) +
+    aes(x=Description, fill=Meaning)) +
     geom_bar(
-        aes(y=answer),
+        aes(y=Answer),
         position=position_dodge(width=0.9),
         size=0.2,
         colour='black',
         stat='identity') +
     geom_errorbar(
-        aes(ymin=answer-sd, ymax=answer+sd),
+        aes(ymin=Answer-sd, ymax=Answer+sd),
         position=position_dodge(width=0.9),
         size=0.2,
-        width=0.2)
+        width=0.2) +
+    ylab('True answer, %') +
+    xlab('"Some" translation') +
+    ggtitle('Preferances for meanings\ndepending on "some" translation') +
+    theme_bw()
       )
